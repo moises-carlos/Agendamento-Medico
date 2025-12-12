@@ -97,6 +97,14 @@ class ProposalService {
     return updatedProposal;
   }
 
+  async rejectOtherProposals(projectId, acceptedProposalId) {
+    await sql`
+      UPDATE proposals
+      SET status = 'recusada'
+      WHERE project_id = ${projectId} AND id != ${acceptedProposalId} AND status = 'pendente'
+    `;
+  }
+
   async deleteProposal(proposalId, freelancerId) {
     const [deletedProposal] = await sql`
       DELETE FROM proposals WHERE id = ${proposalId} AND freelancer_id = ${freelancerId} AND status = 'pendente'

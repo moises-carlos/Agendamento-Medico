@@ -8,11 +8,11 @@ class ProjectController {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { titulo, descricao } = req.body;
+    const { titulo, descricao, orcamento } = req.body;
     const empresa_id = req.user.id; // Vem do token JWT
 
     try {
-      const project = await ProjectService.createProject(titulo, descricao, empresa_id);
+      const project = await ProjectService.createProject(titulo, descricao, orcamento, empresa_id);
       res.status(201).json(project);
     } catch (error) {
       console.error(error);
@@ -52,6 +52,19 @@ class ProjectController {
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Erro ao buscar os projetos da empresa.', message: error.message });
+    }
+  }
+
+  async finishProject(req, res) {
+    const { id } = req.params;
+    const empresa_id = req.user.id;
+
+    try {
+      const finishedProject = await ProjectService.finishProject(id, empresa_id);
+      res.status(200).json(finishedProject);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Erro ao finalizar projeto.', message: error.message });
     }
   }
 

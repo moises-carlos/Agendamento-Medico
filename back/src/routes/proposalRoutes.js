@@ -23,6 +23,9 @@ router.get('/freelancer/:freelancerId', authorize(['admin', 'freelancer']), vali
 // Obter Proposta por ID (dono da proposta, dono do projeto, ou 'admin')
 router.get('/:id', authorize(['admin', 'empresa', 'freelancer']), validateProposalId, ProposalController.getProposalById);
 
+// Aceitar uma proposta e iniciar o fluxo de contrato
+router.post('/:id/accept', authorize(['empresa']), validateProposalId, ProposalController.acceptProposal);
+
 // Atualizar Status da Proposta (apenas 'empresa' dona do projeto)
 router.patch('/:id/status', authorize(['empresa']), validateProposalId, validateProposalStatusUpdate, ProposalController.updateProposalStatus);
 

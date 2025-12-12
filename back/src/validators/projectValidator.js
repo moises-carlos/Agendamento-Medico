@@ -9,6 +9,9 @@ export const validateProjectCreation = [
     .isString().withMessage('Descrição deve ser um texto.')
     .notEmpty().withMessage('Descrição é obrigatória.')
     .isLength({ min: 20 }).withMessage('Descrição deve ter no mínimo 20 caracteres.'),
+  body('orcamento')
+    .optional()
+    .isDecimal().withMessage('Orçamento deve ser um número decimal.'),
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

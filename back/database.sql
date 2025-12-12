@@ -11,6 +11,7 @@ CREATE TABLE projects (
   id SERIAL PRIMARY KEY,
   titulo VARCHAR(255) NOT NULL,
   descricao TEXT NOT NULL,
+  orcamento DECIMAL(10, 2),
   empresa_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   status VARCHAR(50) NOT NULL CHECK (status IN ('aberto', 'em andamento', 'finalizado', 'cancelado')) DEFAULT 'aberto',
   criado_em TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

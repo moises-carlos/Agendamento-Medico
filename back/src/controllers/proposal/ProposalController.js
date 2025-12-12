@@ -1,8 +1,46 @@
 import ProposalService from '../../services/ProposalService.js';
+import ProjectService from '../../services/ProjectService.js';
+import ContractService from '../../services/ContractService.js';
 import { validationResult } from 'express-validator';
 import sql from '../../config/database.js'; // Importar 'sql' para verificações de projeto no controller
 
 class ProposalController {
+
+  async acceptProposal(req, res) {
+    const { id } = req.params;
+    const empresa_id = req.user.id;
+
+    try {
+      // 1. Get proposal details to get project_id
+      const proposal = await ProposalService.getProposalById(id);
+      if (!proposal || proposal.empresa_id !== empresa_id) {
+        return res.status(403).json({ error: 'Proposta não encontrada ou você não tem permissão para aceitá-la.' });
+      }
+      if (proposal.status !== 'pendente') {
+        return res.status(400).json({ error: 'Apenas propostas pendentes podem ser aceitas.' });
+      }
+      const { project_id } = proposal;
+
+      // 2. Update proposal status to 'aceita'
+      await ProposalService.updateProposalStatus(id, 'aceita', empresa_id);
+
+      // 3. Reject all other proposals for this project
+      await ProposalService.rejectOtherProposals(project_id, id);
+
+      // 4. Update project status to 'em andamento'
+      await ProjectService.updateProject(project_id, null, null, 'em andamento', empresa_id);
+
+      // 5. Create the contract
+      const contract = await ContractService.createContract(project_id, empresa_id, 'Termos padrão gerados na aceitação da proposta.');
+
+      res.status(200).json({ message: 'Proposta aceita e contrato criado com sucesso.', contract });
+
+    } catch (error) {
+      console.error('Erro ao aceitar proposta:', error);
+      res.status(500).json({ error: 'Erro no servidor ao aceitar a proposta.', message: error.message });
+    }
+  }
+
   async createProposal(req, res) {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {

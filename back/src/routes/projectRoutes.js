@@ -22,6 +22,9 @@ router.get(
 // Obter Projeto por ID (público) - permitir que visitantes vejam detalhes do projeto
 router.get('/:id', validateProjectId, ProjectController.getProjectById);
 
+// Finalizar um projeto
+router.post('/:id/finish', authorize(['empresa']), validateProjectId, ProjectController.finishProject);
+
 // Atualizar Projeto (apenas 'empresa' e o dono do projeto)
 // A validação de 'empresa_id' é feita no serviço.
 router.put('/:id', authorize(['empresa']), validateProjectId, validateProjectUpdate, ProjectController.updateProject);

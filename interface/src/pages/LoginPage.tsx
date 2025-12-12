@@ -1,78 +1,56 @@
-import React, { useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
-import { Container, Title, TextInput, PasswordInput, Button, Group, Text, Anchor, Paper } from '@mantine/core';
-import { Link } from 'react-router-dom';
-import { notifications } from '@mantine/notifications';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setError(null);
     try {
-      const response = await api.post('/auth/login', { email, senha: password });
-      if (response.data.token) {
-        login(response.data.token);
-        notifications.show({
-          title: 'Sucesso!',
-          message: 'Login realizado com sucesso.',
-          color: 'green',
-        });
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.error || 'Falha no login. Tente novamente.';
-      notifications.show({
-        title: 'Erro no Login',
-        message: errorMessage,
-        color: 'red',
-      });
-    } finally {
-      setLoading(false);
+      const response = await loginUser({ email, senha: password });
+      login(response.data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Login falhou. Verifique suas credenciais.');
     }
   };
-
+  
   const handleGoogleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+    // Redirect to backend Google auth route
+    window.location.href = 'http://localhost:3001/api/auth/google';
   };
 
   return (
-    <Container size={420} my={40}>
-      <Title ta="center">Bem-vindo(a) de volta!</Title>
-      <Text c="dimmed" size="sm" ta="center" mt={5}>
-        Não tem uma conta? <Anchor component={Link} to="/register" size="sm">Crie uma</Anchor>
-      </Text>
-
-      <Paper withBorder shadow="md" p={30} mt={30} radius="md">
-        <form onSubmit={handleSubmit}>
-          <TextInput
-            label="Email"
-            placeholder="seu@email.com"
-            required
-            value={email}
-            onChange={(event) => setEmail(event.currentTarget.value)}
-          />
-          <PasswordInput
-            label="Senha"
-            placeholder="Sua senha"
-            required
-            mt="md"
-            value={password}
-            onChange={(event) => setPassword(event.currentTarget.value)}
-          />
-          <Button fullWidth mt="xl" type="submit" loading={loading}>
-            Login
-          </Button>
-          <Button fullWidth mt="md" variant="default" onClick={handleGoogleLogin} loading={loading}>
-            Login com Google
-          </Button>
-        </form>
-      </Paper>
-    </Container>
+    <div>
+      <h2>Login</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+      <form onSubmit={handleLogin}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Login</button>
+      </form>
+      <hr style={{ margin: '1rem 0' }} />
+      <button onClick={handleGoogleLogin}>Login com Google</button>
+    </div>
   );
 };
 
